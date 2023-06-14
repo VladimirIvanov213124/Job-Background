@@ -15,7 +15,7 @@ from src.tasks.common import AlgorithmTask
 class AppContainer(DeclarativeContainer):
     config = Configuration(pydantic_settings=[AppSecret()])
     logger = Singleton(Logger)
-    browser = Singleton(BrowserClient, driver_url=config.driver_url)
+    browser = Factory(BrowserClient, driver_url=config.driver_url)
     chat_gpt_client = Singleton(ChatGptClient, api_key=config.gpt_key)
 
     link_parse_service = Factory(LinkParseService, driver=browser.provided.driver, logger=logger)
