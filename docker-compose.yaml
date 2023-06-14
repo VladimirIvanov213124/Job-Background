@@ -1,0 +1,42 @@
+version: '3.9'
+
+services:
+  selenoid:
+    image: "selenoid/firefox"
+    restart: always
+    ports:
+      - "4444:4444"
+    volumes:
+      - "./configs/:/etc/selenoid/" # assumed current dir contains browsers.json
+      - "/var/run/docker.sock:/var/run/docker.sock"
+  selenoid-ui:
+    image: "aerokube/selenoid-ui"
+    restart: always
+    links:
+      - selenoid
+    ports:
+      - "8080:8080"
+    command: [ "--selenoid-uri", "http://selenoid:4444" ]
+
+#  background-redis:
+#    container_name: background-redis
+#    image: redis
+#    ports:
+#      - "6379:6379"
+#
+#  celery-worker:
+#    build:
+#      context: .
+#      dockerfile: Dockerfile
+#    container_name: background-worker
+#    command: celery -A src.entrypoints.worker worker --loglevel=DEBUG
+#    environment:
+#      - celery_name=${celery_name}
+#      - broker_url=${broker_url}
+#      - result_backend=${result_backend}
+#      - gpt_key=${gpt_key}
+#      - driver_url=${driver_url}
+#    volumes:
+#      - .:/app
+#    depends_on:
+#      - background-redis
