@@ -1,6 +1,5 @@
 import logging
 import logging.handlers
-from datetime import datetime
 
 import openai
 from selenium.webdriver import FirefoxOptions
@@ -26,15 +25,18 @@ class ChatGptClient:
         return reply
 
 
-class BrowserClient:
-    @staticmethod
-    def _build_driver_(driver_url: str):
+class BrowserClientFactory:
+
+    def __init__(self, driver_url: str):
+        self._driver_url = driver_url
+
+    def build_driver(self):
         firefox_options = FirefoxOptions()
         firefox_options.set_capability('browserName', 'firefox')
         firefox_options.set_capability('browserVersion', '113.0')
         firefox_options.set_capability('selenoid:options', {
             "enableVideo": False,
-            # 'timeout': '3m',
+            'timeout': '3m',
             'screenResolution': '1920x1080',
         })
         firefox_options.add_argument(
@@ -42,14 +44,11 @@ class BrowserClient:
         )
 
         driver = Remote(
-            command_executor=driver_url,
+            command_executor=self._driver_url,
             options=firefox_options,
         )
         # driver.set_page_load_timeout(180)
         return driver
-
-    def __init__(self, driver_url: str):
-        self.driver = self._build_driver_(driver_url)
 
 
 class Logger:

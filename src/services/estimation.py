@@ -6,14 +6,14 @@ from bs4 import BeautifulSoup
 from selenium.webdriver import Remote
 
 from src.dto import EstimateServiceResponse, LinkParseResponse
-from src.services.clients import ChatGptClient, Logger
+from src.services.clients import ChatGptClient, Logger, BrowserClientFactory
 
 
 class EstimateService:
 
-    def __init__(self, chat_gpt_client: ChatGptClient, driver: Remote, logger: Logger):
+    def __init__(self, chat_gpt_client: ChatGptClient, factory_driver: BrowserClientFactory, logger: Logger):
         self._chat_gpt = chat_gpt_client
-        self._driver = driver
+        self._driver = factory_driver.build_driver()
         self._logger = logger
 
     def _get_text_from_link_(self, link: str) -> str:

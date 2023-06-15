@@ -5,19 +5,18 @@ from typing import List, Optional
 from urllib.parse import urlparse
 
 from bs4 import BeautifulSoup
-from selenium.webdriver import Remote
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
 
 from src.dto import LinkParseResponse, JobData
-from src.services.clients import Logger
+from src.services.clients import Logger, BrowserClientFactory
 
 
 class LinkParseService:
 
-    def __init__(self, driver: Remote, logger: Logger):
-        self._driver = driver
+    def __init__(self, factory_driver: BrowserClientFactory, logger: Logger):
+        self._driver = factory_driver.build_driver()
         self._logger = logger
 
     @staticmethod
@@ -76,7 +75,6 @@ class LinkParseService:
         out_data = []
         for key_word in key_word_list:
             job_data = self._extract_data_from_job_url_(domain_url, html, key_word)
-            print('job_data: ', job_data, key_word)
             if not job_data:
                 continue
             out_data.append(
