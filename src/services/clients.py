@@ -57,7 +57,7 @@ class Logger:
         self._logger = logging.getLogger(__name__)
         self._logger.setLevel('DEBUG')
         self._file_handler = logging.handlers.RotatingFileHandler(
-            filename=f'logger.log',
+            filename=f'logs/logger.log',
             mode='w',
             maxBytes=2000000,
             backupCount=10,
