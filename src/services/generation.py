@@ -23,13 +23,29 @@ class KeyWordGenerationService:
         data = [re.sub(pattern='\d+. ', repl='', string=el) for el in data if el]
         return data
 
+    @staticmethod
+    def _preproc_string_v2_(string: str) -> List[str]:
+        data = string.split(', ')
+        data = [el.strip() for el in data]
+        data = [[word.capitalize() for word in el.split()] for el in data]
+        data = [' '.join(arr) for arr in data]
+        return data
+
     def execute(self, job_description: str) -> List[str]:
         try:
-            msg = self._build_text_request_(job_description)
-            response = self._chat_gpt.send_request(msg)
-            results = self._preproc_string_(response)
+            results = self._preproc_string_v2_(job_description)
             self._logger.log_info(f"Generated jobs: {results}")
             return results
         except Exception as e:
             self._logger.log_error(f'Error Generate Jobs: {str(e)}')
             return []
+
+        # try:
+        #     msg = self._build_text_request_(job_description)
+        #     response = self._chat_gpt.send_request(msg)
+        #     results = self._preproc_string_(response)
+        #     self._logger.log_info(f"Generated jobs: {results}")
+        #     return results
+        # except Exception as e:
+        #     self._logger.log_error(f'Error Generate Jobs: {str(e)}')
+        #     return []
