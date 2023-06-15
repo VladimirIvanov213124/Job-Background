@@ -20,9 +20,7 @@ class AlgorithmService:
 
     def execute(self, user_job_description: str, links: List[str]) -> List[EstimateServiceResponse]:
         job_names = self.generation_service.execute(user_job_description)
-        self._logger.log_info(f"Generated jobs: {job_names}")
         job_links = self.link_parse_service.execute(links, job_names)
-        self._logger.log_info(f"Parsed links: {job_links}")
         if not job_links:
             return []
         out = self.estimate_service.execute(job_links, user_job_description)

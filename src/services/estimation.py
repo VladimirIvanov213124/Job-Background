@@ -13,14 +13,14 @@ class EstimateService:
 
     def __init__(self, chat_gpt_client: ChatGptClient, factory_driver: BrowserClientFactory, logger: Logger):
         self._chat_gpt = chat_gpt_client
-        self._driver = factory_driver.build_driver()
+        self._factory_driver = factory_driver
         self._logger = logger
 
-    def _get_text_from_link_(self, link: str) -> str:
+    def _get_text_from_link_(self, link: str, driver: Remote) -> str:
         try:
-            self._driver.get(link)
+            driver.get(link)
             time.sleep(5)
-            page_content = self._driver.page_source
+            page_content = driver.page_source
             soup = BeautifulSoup(page_content, 'html.parser')
             return soup.text
         except Exception as e:
@@ -42,9 +42,9 @@ class EstimateService:
             return 1
         return elements[0]
 
-    def _execute_one_(self, link: str, user_comment: str) -> int:
+    def _execute_one_(self, link: str, user_comment: str, driver: Remote) -> int:
         try:
-            html_text = self._get_text_from_link_(link)
+            html_text = self._get_text_from_link_(link, driver)
             msg = self._build_text_request_(html_text, user_comment)
             response = self._chat_gpt.send_request(msg)
             score = self._preproc_string_(response)
@@ -59,8 +59,10 @@ class EstimateService:
 
     def execute(self, links: List[LinkParseResponse], job_description: str) -> List[EstimateServiceResponse]:
         results = []
-        for link in links:
-            score = self._execute_one_(link.job_url, job_description)
-            results.append(EstimateServiceResponse(score=score, job_name=link.job_name, job_url=link.job_url))
-        # results = self._filter_jobs_(results)
-        return results
+        driver = self._factory_driver.build_driver()
+        with driver:
+            for link in links:
+                score = self._execute_one_(link.job_url, job_description, driver)
+                results.append(EstimateServiceResponse(score=score, job_name=link.job_name, job_url=link.job_url))
+            # results = self._filter_jobs_(results)
+            return results

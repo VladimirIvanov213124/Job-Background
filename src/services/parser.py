@@ -1,10 +1,11 @@
 import random
 import re
 import time
-from typing import List, Optional
+from typing import List
 from urllib.parse import urlparse
 
 from bs4 import BeautifulSoup
+from selenium.webdriver import Remote
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
@@ -16,7 +17,7 @@ from src.services.clients import Logger, BrowserClientFactory
 class LinkParseService:
 
     def __init__(self, factory_driver: BrowserClientFactory, logger: Logger):
-        self._driver = factory_driver.build_driver()
+        self._factory_driver = factory_driver
         self._logger = logger
 
     @staticmethod
@@ -25,21 +26,21 @@ class LinkParseService:
         domain_url = f'{res.scheme}://{res.netloc}'
         return domain_url
 
-    def _build_bs_from_link(self, link: str) -> BeautifulSoup | None:
-        wait = WebDriverWait(self._driver, 10)
+    def _build_bs_from_link(self, link: str, driver: Remote) -> BeautifulSoup | None:
+        wait = WebDriverWait(driver, 10)
         try:
-            self._driver.get(link)
+            driver.get(link)
             time.sleep(2)
             try:
                 wait.until(
                     EC.element_to_be_clickable((By.LINK_TEXT, 'Accept'))
                 ).click()
             except Exception as e:
-                print(str(e))
+                self._logger.log_error(f'Cookie button click: {str(e)}')
                 pass
-            self._driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+            driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
             time.sleep(5)
-            page_content = self._driver.page_source
+            page_content = driver.page_source
             soup = BeautifulSoup(page_content, 'html.parser')
             self._logger.log_info(f'LinkParseService get page content from: {link}')
             return soup
@@ -47,7 +48,7 @@ class LinkParseService:
             self._logger.log_error(f'Driver get link: {link}: {str(e)}')
 
     @staticmethod
-    def _extract_data_from_job_url_(domain_url: str, html: BeautifulSoup, job_name: str) -> Optional[JobData]:
+    def _extract_data_from_job_url_(domain_url: str, html: BeautifulSoup, job_name: str) -> JobData | None:
         try:
             tag_list = html.find_all(string=re.compile(job_name))
             for tag in tag_list:
@@ -67,8 +68,8 @@ class LinkParseService:
         except Exception as e:
             return None
 
-    def _parse_src_link_(self, src_link: str, key_word_list: List[str]) -> List[LinkParseResponse]:
-        html = self._build_bs_from_link(src_link)
+    def _parse_src_link_(self, src_link: str, key_word_list: List[str], driver: Remote) -> List[LinkParseResponse]:
+        html = self._build_bs_from_link(src_link, driver)
         if not html:
             return []
         domain_url = self._extract_domain_name_(src_link)
@@ -88,9 +89,11 @@ class LinkParseService:
 
     def execute(self, src_link_list: List[str], key_word_list: List[str]) -> List[LinkParseResponse]:
         outputs = []
-        for src_link in src_link_list:
-            tmp_data = self._parse_src_link_(src_link, key_word_list)
-            outputs += tmp_data
-            time.sleep(random.uniform(1, 3))
-
-        return outputs
+        driver = self._factory_driver.build_driver()
+        with driver:
+            for src_link in src_link_list:
+                tmp_data = self._parse_src_link_(src_link, key_word_list, driver)
+                outputs += tmp_data
+                time.sleep(random.uniform(1, 3))
+            self._logger.log_info(f"Parsed links: {outputs}")
+            return outputs

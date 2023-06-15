@@ -28,6 +28,7 @@ class KeyWordGenerationService:
             msg = self._build_text_request_(job_description)
             response = self._chat_gpt.send_request(msg)
             results = self._preproc_string_(response)
+            self._logger.log_info(f"Generated jobs: {results}")
             return results
         except Exception as e:
             self._logger.log_error(f'Error Generate Jobs: {str(e)}')
