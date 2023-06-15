@@ -12,8 +12,7 @@ class KeyWordGenerationService:
     @staticmethod
     def _build_text_request_(description: str) -> str:
         text = f'''
-            Generate 50 common job titles in one or two words by description: 
-            {description}
+            From the description below, list up to 50 job titles that seem relevant to the description. If description mentions some job titles, use them as well. If description consists of Job Titles, just return the same job titles. If description consists of keywords, return just these keywords. {description}
         '''
         return text
 
