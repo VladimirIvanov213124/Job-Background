@@ -43,7 +43,7 @@ class LinkParseService:
             time.sleep(5)
             page_content = driver.page_source
             soup = BeautifulSoup(page_content, 'html.parser')
-            self._logger.log_info(f'LinkParseService get page content from: {link}: {soup.text}')
+            self._logger.log_info(f'LinkParseService get page content from: {link}')
             return soup
         except Exception as e:
             self._logger.log_error(f'Driver get link: {link}: {str(e)}')
