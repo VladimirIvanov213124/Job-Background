@@ -27,8 +27,8 @@ class KeyWordGenerationService:
     def _preproc_string_v2_(string: str) -> List[str]:
         data = string.split(', ')
         data = [el.strip() for el in data]
-        data = [[word.capitalize() for word in el.split()] for el in data]
-        data = [' '.join(arr) for arr in data]
+        data = [word.lower() for job_name in data for word in job_name.split()]
+        data = list(set(data))
         return data
 
     def execute(self, job_description: str) -> List[str]:

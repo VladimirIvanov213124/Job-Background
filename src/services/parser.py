@@ -42,7 +42,7 @@ class LinkParseService:
             driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
             time.sleep(5)
             page_content = driver.page_source
-            soup = BeautifulSoup(page_content, 'html.parser')
+            soup = BeautifulSoup(page_content.lower(), 'html.parser')
             self._logger.log_info(f'LinkParseService get page content from: {link}')
             return soup
         except Exception as e:
@@ -52,7 +52,6 @@ class LinkParseService:
     def _extract_data_from_job_url_(domain_url: str, html: BeautifulSoup, job_name: str) -> JobData | None:
         try:
             tag_list = html.find_all(string=re.compile(job_name))
-            print(job_name, tag_list)
             for tag in tag_list:
                 tag_parents = tag.parents
                 for parent in tag_parents:
@@ -73,7 +72,7 @@ class LinkParseService:
     def _parse_src_link_(self, src_link: str, key_word_list: List[str], driver: Remote) -> List[LinkParseResponse]:
         html = self._build_bs_from_link(src_link, driver)
         if not html:
-            print(f'HTML is None')
+            self._logger.log_error('HTML is None')
             return []
         domain_url = self._extract_domain_name_(src_link)
         out_data = []
