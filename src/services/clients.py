@@ -2,6 +2,7 @@ import logging
 import logging.handlers
 
 import openai
+from selenium import webdriver
 from selenium.webdriver import FirefoxOptions
 from selenium.webdriver import Remote
 
@@ -30,7 +31,7 @@ class BrowserClientFactory:
     def __init__(self, driver_url: str):
         self._driver_url = driver_url
 
-    def build_driver(self):
+    def build_driver(self) -> webdriver:
         firefox_options = FirefoxOptions()
         firefox_options.set_capability('browserName', 'firefox')
         firefox_options.set_capability('browserVersion', '113.0')

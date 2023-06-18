@@ -5,7 +5,7 @@ from typing import List
 from bs4 import BeautifulSoup
 from selenium.webdriver import Remote
 
-from src.dto import EstimateServiceResponse, LinkParseResponse
+from src.dto import EstimateServiceResponse, FoundJobFromHtml
 from src.services.clients import ChatGptClient, Logger, BrowserClientFactory
 
 
@@ -57,12 +57,12 @@ class EstimateService:
     def _filter_jobs_(data: List[EstimateServiceResponse]) -> List[EstimateServiceResponse]:
         return [elem for elem in data if elem.score > 1]
 
-    def execute(self, links: List[LinkParseResponse], job_description: str) -> List[EstimateServiceResponse]:
+    def execute(self, parsed_jobs: List[FoundJobFromHtml], job_description: str) -> List[EstimateServiceResponse]:
         results = []
         driver = self._factory_driver.build_driver()
         with driver:
-            for link in links:
-                score = self._execute_one_(link.job_url, job_description, driver)
-                results.append(EstimateServiceResponse(score=score, job_name=link.job_name, job_url=link.job_url))
-            # results = self._filter_jobs_(results)
+            for job in parsed_jobs:
+                score = self._execute_one_(job.link, job_description, driver)
+                results.append(EstimateServiceResponse(score=score, job_name=job.name, job_url=job.link))
+            results = self._filter_jobs_(results)
             return results
